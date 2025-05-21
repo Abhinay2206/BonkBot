@@ -1,5 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import walletRoutes from './routes/walletRoutes';
+import tradingRoutes from './routes/tradingRoutes';
 import cors from 'cors';
 
 // Create Express app
@@ -16,7 +17,8 @@ app.use(cors({
 }));
 
 // Routes
-app.use('/api', walletRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/trading', tradingRoutes);
 
 // Health check route
 app.get('/health', (req: Request, res: Response) => {
@@ -28,7 +30,14 @@ app.get('/', (req: Request, res: Response) => {
   res.json({
     message: 'Solana Balance Checker API',
     endpoints: {
-      balance: '/api/balance/:wallet - Get SOL and token balances for a wallet'
+      balance: '/api/wallet/balance/:wallet - Get SOL and token balances for a wallet',
+      trading: {
+        marketOrder: '/api/trading/market-order - Execute a market order',
+        limitOrder: '/api/trading/limit-order - Place a limit order', 
+        dca: '/api/trading/dca - Setup DCA order',
+        alerts: '/api/trading/check-alerts - Check price alerts',
+        price: '/api/trading/price/:token - Get token price'
+      }
     }
   });
 });
