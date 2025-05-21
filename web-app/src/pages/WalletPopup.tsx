@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWallet } from '../contexts/WalletContext';
 
 declare global {
   interface Window {
@@ -32,6 +33,7 @@ declare global {
 }
 
 const WalletPopup = () => {
+  const { setWalletInfo } = useWallet();
   const navigate = useNavigate();
   const [availableWallets, setAvailableWallets] = useState({
     phantom: false,
@@ -63,7 +65,7 @@ const WalletPopup = () => {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('metamaskConnected', 'true');
-              sessionStorage.setItem('metamaskPublicKey', accounts[0]);
+              setWalletInfo('metamask', accounts[0]);
               navigate('/dashboard');
             }
           }
@@ -75,8 +77,8 @@ const WalletPopup = () => {
             const response = await solana.connect();
             const publicKey = response.publicKey.toString();
             if (publicKey) {
-              sessionStorage.setItem('phantomPublicKey', publicKey);
               sessionStorage.setItem('phantomConnected', 'true');
+              setWalletInfo('phantom', publicKey);
               navigate('/dashboard');
             }
           }
@@ -87,8 +89,8 @@ const WalletPopup = () => {
             const response = await window.solflare.connect();
             const publicKey = response.publicKey.toString();
             if (publicKey) {
-              sessionStorage.setItem('solflarePublicKey', publicKey);
               sessionStorage.setItem('solflareConnected', 'true');
+              setWalletInfo('solflare', publicKey);
               navigate('/dashboard');
             }
           }
@@ -99,8 +101,8 @@ const WalletPopup = () => {
             const response = await window.sollet.connect();
             const publicKey = response.publicKey.toString();
             if (publicKey) {
-              sessionStorage.setItem('solletPublicKey', publicKey);
               sessionStorage.setItem('solletConnected', 'true');
+              setWalletInfo('sollet', publicKey);
               navigate('/dashboard');
             }
           }
@@ -111,7 +113,7 @@ const WalletPopup = () => {
             const accounts = await window.coinbase.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('coinbaseConnected', 'true');
-              sessionStorage.setItem('coinbasePublicKey', accounts[0]);
+              setWalletInfo('coinbase', accounts[0]);
               navigate('/dashboard');
             }
           }
@@ -122,7 +124,7 @@ const WalletPopup = () => {
             const accounts = await window.trustwallet.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('trustwalletConnected', 'true');
-              sessionStorage.setItem('trustwalletPublicKey', accounts[0]);
+              setWalletInfo('trustwallet', accounts[0]);
               navigate('/dashboard');
             }
           }

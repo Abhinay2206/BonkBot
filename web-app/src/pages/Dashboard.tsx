@@ -9,10 +9,12 @@ import OpenOrders from '../components/dashboard/OpenOrders';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
 import { mockData } from '../data/mockData';
 import Card from '../components/common/Card';
+import { useWallet } from '../contexts/WalletContext';
 
 export default function Dashboard() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
+  const { publicKey, walletType } = useWallet();
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Mobile menu button */}
@@ -29,7 +31,7 @@ export default function Dashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top navigation */}
-        <TopNavigation data={mockData} />
+        <TopNavigation publicKey={publicKey} walletType={walletType} />
         
         {/* Main content scrollable area */}
         <main className="flex-1 overflow-y-auto p-4">
