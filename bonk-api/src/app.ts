@@ -20,7 +20,6 @@ app.use(cors({
 // Routes
 app.use('/api/wallet', walletRoutes);
 app.use('/api/trading', tradingRoutes);
-
 // Health check route
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'up', timestamp: new Date().toISOString() });
@@ -37,8 +36,7 @@ app.get('/', (req: Request, res: Response) => {
         limitOrder: '/api/trading/limit-order - Place a limit order', 
         dca: '/api/trading/dca - Setup DCA order',
         alerts: '/api/trading/check-alerts - Check price alerts',
-        price: '/api/trading/price/:token - Get token price'
-      }
+      },
     }
   });
 });

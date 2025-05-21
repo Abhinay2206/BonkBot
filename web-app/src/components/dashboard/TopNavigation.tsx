@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Bell, Settings, Wallet } from 'lucide-react';
 
 interface TopNavigationProps {
@@ -6,7 +7,10 @@ interface TopNavigationProps {
 }
 
 const TopNavigation = ({ publicKey, walletType }: TopNavigationProps) => {
-  const bonkBalance = "123,456.78 BONK";
+  const [bonkBalance, setBonkBalance] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
   const netAPY = "5.23%";
   const dailyChange = "+2.14%";
 
@@ -15,6 +19,72 @@ const TopNavigation = ({ publicKey, walletType }: TopNavigationProps) => {
       ? `${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`
       : publicKey
     : "Not Connected";
+
+  useEffect(() => {
+    if (!publicKey) {
+      setBonkBalance(null);
+      setBalanceError(null);
+      return;
+    }
+    setLoading(true);
+    setBalanceError(null);
+
+    const fetchBalanceWithRetry = async (retries = 4, delay = 500) => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/wallet/balance/${publicKey}`);
+        if (res.status === 429) {
+          if (retries > 0) {
+            setTimeout(() => {
+              fetchBalanceWithRetry(retries - 1, delay * 2);
+            }, delay);
+            return;
+          } else {
+            throw new Error('Too Many Requests: Please try again later.');
+          }
+        }
+        if (!res.ok) {
+          throw new Error('Failed to fetch balance');
+        }
+        const data = await res.json();
+        let bonkAmount: number | undefined = undefined;
+        if (
+          data &&
+          typeof data === 'object' &&
+          data.tokens &&
+          data.tokens.bonk &&
+          typeof data.tokens.bonk.amount === 'number'
+        ) {
+          bonkAmount = data.tokens.bonk.amount;
+        } else if (typeof data.bonkBalance === 'number') {
+          bonkAmount = data.bonkBalance;
+        }
+        if (typeof bonkAmount === 'number') {
+          setBonkBalance(
+            bonkAmount.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' BONK'
+          );
+        } else {
+          setBonkBalance('--');
+        }
+      } catch (err: unknown) {
+        if (
+          typeof err === 'object' &&
+          err !== null &&
+          'message' in err &&
+          typeof (err as { message?: unknown }).message === 'string' &&
+          (err as { message: string }).message.includes('Too Many Requests')
+        ) {
+          setBalanceError('Rate limited. Please try again later.');
+        } else {
+          setBalanceError('Error fetching balance');
+        }
+        setBonkBalance(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBalanceWithRetry();
+  }, [publicKey]);
 
   return (
     <header className="bg-white shadow">
@@ -34,7 +104,12 @@ const TopNavigation = ({ publicKey, walletType }: TopNavigationProps) => {
         <div className="flex items-center space-x-6">
           <div>
             <span className="text-sm text-gray-500">BONK Balance:</span>
-            <span className="ml-2 font-semibold">{bonkBalance}</span>
+            <span className="ml-2 font-semibold">
+              {loading && publicKey ? 'Loading...' : 
+                balanceError ? (
+                  <span className="text-red-500">{balanceError}</span>
+                ) : bonkBalance !== null ? bonkBalance : '--'}
+            </span>
           </div>
           
           <div>
