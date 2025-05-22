@@ -62,7 +62,7 @@ export default function Dashboard() {
             {/* Right Column - Trading Tools */}
             <div className="space-y-6">
               <Card title="Token Holdings">
-                <TokenHoldings data={mockData.tokenHoldings} />
+                <TokenHoldings />
               </Card>
               
               <Card title="DCA Scheduler">
