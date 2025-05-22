@@ -17,8 +17,8 @@ declare global {
       isSolflare?: boolean;
       connect(): Promise<{ publicKey: { toString(): string } }>;
     };
-    sollet?: {
-      isSollet?: boolean;
+    BitgetWallet?: { // Updated BitGet interface
+      isBitget?: boolean;
       connect(): Promise<{ publicKey: { toString(): string } }>;
     };
     coinbase?: {
@@ -39,18 +39,22 @@ const WalletPopup = () => {
     phantom: false,
     metamask: false,
     solflare: false,
-    sollet: false,
+    bitget: false,
     coinbase: false,
     trustwallet: false
   });
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
+    // Debug logs for BitGet
+    console.log('BitGet window object:', window.BitgetWallet);
+    console.log('BitGet isBitget property:', window.BitgetWallet?.isBitget);
+
     setAvailableWallets({
       phantom: !!window.phantom?.solana?.isPhantom,
       metamask: !!window.ethereum,
       solflare: !!window.solflare?.isSolflare,
-      sollet: !!window.sollet?.isSollet,
+      bitget: !!window.BitgetWallet?.isBitget, // Updated BitGet check
       coinbase: !!window.coinbase?.isCoinbaseWallet,
       trustwallet: !!window.trustwallet?.isTrust
     });
@@ -101,13 +105,13 @@ const WalletPopup = () => {
           }
           break;
 
-        case 'sollet':
-          if (window.sollet) {
-            const response = await window.sollet.connect();
+        case 'bitget':
+          if (window.BitgetWallet) { // Updated BitGet check
+            const response = await window.BitgetWallet.connect();
             const publicKey = response.publicKey.toString();
             if (publicKey) {
-              sessionStorage.setItem('solletConnected', 'true');
-              setWalletInfo('sollet', publicKey);
+              sessionStorage.setItem('bitgetConnected', 'true');
+              setWalletInfo('bitget', publicKey);
               navigate('/dashboard');
             }
           }
@@ -165,11 +169,11 @@ const WalletPopup = () => {
       installUrl: 'https://solflare.com/'
     },
     {
-      id: 'sollet',
-      name: 'Sollet',
-      network: 'Solana Network',
-      icon: '/assets/images/sollet-icon.png',
-      installUrl: 'https://www.sollet.io/'
+      id: 'bitget',
+      name: 'BitGet',
+      network: 'Multi-Chain',
+      icon: '/assets/images/bitget-icon.png',
+      installUrl: 'https://web3.bitget.com/'
     },
     {
       id: 'coinbase',
