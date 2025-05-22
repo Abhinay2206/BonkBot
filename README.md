@@ -15,7 +15,7 @@
   - Real-time BONK token price monitoring
   - Portfolio value tracking
   - Transaction history visualization
-  - User-friendly interface built with Next.js
+  - User-friendly interface built with React.js
 
 - **Trading Automation**
   - Basic limit orders for BONK tokens
@@ -32,7 +32,7 @@
 
 ## 📦 Tech Stack
 
-- **Frontend:** Next.js, React, Solana Wallet Adapter
+- **Frontend:**  React, Solana Wallet Adapter
 - **Backend:** Node.js, Express.js
 - **Blockchain:** Solana Web3.js for wallet interactions and signature verification
 - **Authentication:** JWT (JSON Web Tokens) for secure API access
