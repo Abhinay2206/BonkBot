@@ -4,80 +4,64 @@ import { WalletBalance, TokenInfo, TokensMap } from '../types';
 import { lamportsToSol } from '../utils';
 
 const connection = new Connection(
-  clusterApiUrl(config.solana.cluster),
+  config.solana.rpcUrl, // Use Alchemy RPC URL instead of public RPC
   config.solana.commitment as any
 );
 
 // SPL token program ID
 const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
-
-export async function getSolBalance(walletAddress: string): Promise<number> {
+export async function getWalletBalances(walletAddress: string): Promise<WalletBalance> {
   try {
     const publicKey = new PublicKey(walletAddress);
-    const lamports = await connection.getBalance(publicKey);
-    return lamportsToSol(lamports);
+    
+    // Get SOL and token balances in parallel
+    const [lamports, tokenAccounts] = await Promise.all([
+      connection.getBalance(publicKey),
+      connection.getParsedTokenAccountsByOwner(publicKey, {
+        programId: TOKEN_PROGRAM_ID
+      })
+    ]);
+
+    // Process token balances
+    const tokenBalances: { [tokenName: string]: { amount: number; mintAddress: string } } = {
+      bonk: { amount: 0, mintAddress: config.tokens.bonk.mintAddress }
+    };
+
+    // Update bonk balance if found
+    tokenAccounts.value.forEach(({ account }) => {
+      const info = account.data.parsed.info;
+      if (info.mint === config.tokens.bonk.mintAddress) {
+        tokenBalances.bonk.amount = info.tokenAmount.uiAmount || 0;
+      }
+    });
+
+    return {
+      solBalance: lamportsToSol(lamports),
+      tokenBalances
+    };
+
   } catch (error) {
-    console.error('Error fetching SOL balance:', error);
-    throw new Error(`Failed to fetch SOL balance: ${(error as Error).message}`);
+    console.error('Error fetching wallet balances:', error);
+    throw new Error(`Failed to fetch wallet balances: ${(error as Error).message}`);
   }
 }
 
-export async function getTokenBalances(
-  walletAddress: string,
-  tokens: TokensMap
-): Promise<{ [tokenName: string]: { amount: number; mintAddress: string } }> {
+export async function getAllTokenHoldings(walletAddress: string): Promise<{ mintAddress: string; amount: number }[]> {
   try {
     const publicKey = new PublicKey(walletAddress);
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-      programId: TOKEN_PROGRAM_ID
+      programId: TOKEN_PROGRAM_ID,
     });
 
-    // Create a map to store token balances
-    const tokenBalances: { [tokenName: string]: { amount: number; mintAddress: string } } = {};
-    
-    // Initialize all tokens with zero balance
-    Object.entries(tokens).forEach(([tokenName, tokenInfo]) => {
-      tokenBalances[tokenName] = { amount: 0, mintAddress: tokenInfo.mintAddress };
-    });
-
-    // Update balances for tokens found in the wallet
-    tokenAccounts.value.forEach(({ account }) => {
-      const tokenInfo = account.data.parsed.info;
-      const mintAddress = tokenInfo.mint;
-      
-      // Find which token this belongs to
-      Object.entries(tokens).forEach(([tokenName, info]) => {
-        if (info.mintAddress === mintAddress) {
-          tokenBalances[tokenName] = {
-            amount: tokenInfo.tokenAmount.uiAmount || 0,
-            mintAddress
-          };
-        }
-      });
-    });
-
-    return tokenBalances;
+    return tokenAccounts.value
+      .map(({ account }) => ({
+        mintAddress: account.data.parsed.info.mint,
+        amount: account.data.parsed.info.tokenAmount?.uiAmount || 0,
+      }))
+      .filter(token => token.amount > 0);
   } catch (error) {
-    console.error('Error fetching token balances:', error);
-    throw new Error(`Failed to fetch token balances: ${(error as Error).message}`);
+    console.error("❌ Error fetching token holdings:", error);
+    throw new Error(`Failed to fetch all token holdings: ${(error as Error).message}`);
   }
-}
-
-export async function getWalletBalances(walletAddress: string): Promise<WalletBalance> {
-  // Define tokens to check
-  const tokens: TokensMap = {
-    bonk: { mintAddress: config.tokens.bonk.mintAddress }
-  };
-
-  // Get SOL balance
-  const solBalance = await getSolBalance(walletAddress);
-  
-  // Get token balances
-  const tokenBalances = await getTokenBalances(walletAddress, tokens);
-
-  return {
-    solBalance,
-    tokenBalances
-  };
 }

@@ -4,7 +4,29 @@ import { Dog, Menu, X, Moon, Sun } from 'lucide-react';
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true); 
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Load dark mode preference on initial render
+  useEffect(() => {
+    const savedPreference = localStorage.getItem('darkMode');
+    if (savedPreference !== null) {
+      setDarkMode(savedPreference === 'true');
+    } else {
+      // Use system preference if no user preference is saved
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setDarkMode(prefersDark);
+    }
+  }, []);
+
+  // Apply dark mode class & save preference
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,19 +35,6 @@ const Header: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
   }, []);
 
   const toggleMobileMenu = () => {

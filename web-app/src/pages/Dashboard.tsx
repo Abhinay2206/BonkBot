@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import Sidebar from '../components/dashboard/SideBar';
 import TopNavigation from '../components/dashboard/TopNavigation';
-import PortfolioSummary from '../components/dashboard/PortfolioSummary';
+import LiveChart from '../components/dashboard/LiveChart';
 import TokenHoldings from '../components/dashboard/TokenHoldings';
 import DcaScheduler from '../components/dashboard/DcaSchedular';
 import PriceAlerts from '../components/dashboard/PriceAlerts';
@@ -9,62 +7,72 @@ import OpenOrders from '../components/dashboard/OpenOrders';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
 import { mockData } from '../data/mockData';
 import Card from '../components/common/Card';
-import { useWallet } from '../contexts/WalletContext';
+import { useEffect } from 'react';
 
 export default function Dashboard() {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { publicKey, walletType } = useWallet();
+  useEffect(() => {
+    // Check localStorage for theme preference
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Mobile menu button */}
-      <button 
-        className="lg:hidden fixed z-50 bottom-4 right-4 bg-purple-600 text-white p-3 rounded-full shadow-lg"
-        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      >
-        {isMobileSidebarOpen ? "✕" : "☰"}
-      </button>
-      
-      {/* Sidebar */}
-      <Sidebar isOpen={isMobileSidebarOpen} />
-      
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         {/* Top navigation */}
-        <TopNavigation publicKey={publicKey} walletType={walletType} />
+        <TopNavigation />
         
-        {/* Main content scrollable area */}
-        <main className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {/* Portfolio Summary Chart */}
-            <Card title="BONK Portfolio Summary" className="xl:col-span-2">
-              <PortfolioSummary data={mockData.portfolioData} />
-            </Card>
-            
-            {/* Token Holdings */}
-            <Card title="Token Holdings">
-              <TokenHoldings data={mockData.tokenHoldings} />
-            </Card>
-            
-            {/* DCA Scheduler */}
-            <Card title="DCA Scheduler">
-              <DcaScheduler data={mockData.dcaSchedules} />
-            </Card>
-            
-            {/* Price Alerts */}
-            <Card title="Price Alerts">
-              <PriceAlerts data={mockData.priceAlerts} />
-            </Card>
-            
-            {/* Open Orders */}
-            <Card title="Open Orders">
-              <OpenOrders data={mockData.openOrders} />
-            </Card>
-            
-            {/* Recent Transactions */}
-            <Card title="Recent Transactions">
-              <RecentTransactions data={mockData.recentTransactions} />
-            </Card>
+        {/* Main content area */}
+        <main className="container mx-auto px-4 py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome back
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Monitor your BONK portfolio and trading activities
+            </p>
+          </div>
+
+          {/* Dashboard Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Left Column - Charts */}
+            <div className="xl:col-span-3 space-y-6">
+              {/* Live Chart */}
+              <Card title="BONK Live Chart">
+                <LiveChart />
+              </Card>
+              
+              {/* Recent Transactions and Open Orders */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card title="Open Orders">
+                  <OpenOrders data={mockData.openOrders} />
+                </Card>
+                <Card title="Recent Transactions">
+                  <RecentTransactions data={mockData.recentTransactions} />
+                </Card>
+              </div>
+            </div>
+
+            {/* Right Column - Trading Tools */}
+            <div className="space-y-6">
+              <Card title="Token Holdings">
+                <TokenHoldings data={mockData.tokenHoldings} />
+              </Card>
+              
+              <Card title="DCA Scheduler">
+                <DcaScheduler data={mockData.dcaSchedules} />
+              </Card>
+              
+              <Card title="Price Alerts">
+                <PriceAlerts data={mockData.priceAlerts} />
+              </Card>
+            </div>
           </div>
         </main>
       </div>

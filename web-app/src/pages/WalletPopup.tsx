@@ -85,14 +85,19 @@ const WalletPopup = () => {
           break; }
 
         case 'solflare':
-          if (window.solflare) {
-            const response = await window.solflare.connect();
-            const publicKey = response.publicKey.toString();
-            if (publicKey) {
-              sessionStorage.setItem('solflareConnected', 'true');
-              setWalletInfo('solflare', publicKey);
-              navigate('/dashboard');
+          try {
+            if (window.solflare) {
+              const response = await window.solflare.connect();
+              const publicKey = response.publicKey.toString();
+              if (publicKey) {
+                sessionStorage.setItem('solflareConnected', 'true');
+                setWalletInfo('solflare', publicKey);
+                navigate('/dashboard');
+              }
             }
+          } catch (error) {
+            console.error('Solflare connection error:', error);
+            throw new Error('Failed to connect to Solflare wallet');
           }
           break;
 
