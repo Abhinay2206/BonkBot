@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, } from 'express';
 import { getWalletBalance, getTokenHoldings } from '../controllers/walletController';
 
 const router = Router();

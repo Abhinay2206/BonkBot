@@ -1,10 +1,10 @@
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { config } from '../config';
-import { WalletBalance, TokenInfo, TokensMap } from '../types';
+import { WalletBalance, TokenInfoData, TokensMap } from '../types';
 import { lamportsToSol } from '../utils';
 
 const connection = new Connection(
-  config.solana.rpcUrl, // Use Alchemy RPC URL instead of public RPC
+  config.solana.rpcUrl, 
   config.solana.commitment as any
 );
 
@@ -47,21 +47,46 @@ export async function getWalletBalances(walletAddress: string): Promise<WalletBa
   }
 }
 
-export async function getAllTokenHoldings(walletAddress: string): Promise<{ mintAddress: string; amount: number }[]> {
+export async function getAllTokenHoldings(walletAddress: string): Promise<{ mintAddress: string; amount: number; symbol?: string; name?: string; decimals?: number }[]> {
   try {
     const publicKey = new PublicKey(walletAddress);
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
       programId: TOKEN_PROGRAM_ID,
     });
 
-    return tokenAccounts.value
-      .map(({ account }) => ({
-        mintAddress: account.data.parsed.info.mint,
-        amount: account.data.parsed.info.tokenAmount?.uiAmount || 0,
-      }))
-      .filter(token => token.amount > 0);
+    const holdings = await Promise.all(
+      tokenAccounts.value
+        .filter(({ account }) => account.data.parsed.info.tokenAmount?.uiAmount > 0)
+        .map(async ({ account }) => {
+          const mintAddress = account.data.parsed.info.mint;
+          const amount = account.data.parsed.info.tokenAmount?.uiAmount || 0;
+
+          try {
+            const tokenInfo = await connection.getParsedAccountInfo(new PublicKey(mintAddress));
+            const metadata = tokenInfo.value?.data as any;
+
+            return {
+              mintAddress,
+              amount,
+              symbol: metadata?.parsed?.info?.symbol,
+              name: metadata?.parsed?.info?.name,
+              decimals: metadata?.parsed?.info?.decimals
+            };
+          } catch (err) {
+            // Return basic info if metadata fetch fails
+            return {
+              mintAddress,
+              amount
+            };
+          }
+        })
+    );
+
+    return holdings;
+
   } catch (error) {
     console.error("❌ Error fetching token holdings:", error);
     throw new Error(`Failed to fetch all token holdings: ${(error as Error).message}`);
   }
 }
+

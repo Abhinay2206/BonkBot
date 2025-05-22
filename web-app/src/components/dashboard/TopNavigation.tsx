@@ -40,33 +40,12 @@ const TopNavigation = () => {
       if (!publicKey) return
 
       try {
-        const maxRetries = 3;
-        let retryCount = 0;
-        let delay = 1000;
-
-        while (retryCount < maxRetries) {
-          try {
-            const response = await fetch(`http://localhost:4000/api/wallet/balance/${publicKey}`)
-            if (response.status === 429) {
-              await new Promise(resolve => setTimeout(resolve, delay));
-              delay *= 2;
-              retryCount++;
-              continue;
-            }
-            if (!response.ok) throw new Error('Network response was not ok')
-            const data = await response.json()
-            setBonkBalance(data.balance || "0")
-            break;
-          } catch (error) {
-            if (retryCount === maxRetries - 1) throw error;
-            delay *= 2;
-            retryCount++;
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-        }
+        const response = await fetch(`http://localhost:4000/api/wallet/balance/${publicKey}`)
+        const data = await response.json()
+        setBonkBalance(data.bonkBalance)
       } catch (error) {
         console.error("Failed to fetch BONK balance:", error)
-        setBonkBalance("0")
+        setBonkBalance("error") 
       }
     }
 

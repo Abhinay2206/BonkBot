@@ -4,6 +4,9 @@ import { useWallet } from "../../contexts/WalletContext"
 interface TokenHolding {
   mintAddress: string;
   amount: number;
+  decimals: number;
+  symbol?: string;
+  name?: string;
 }
 
 const TokenHoldings = () => {
@@ -22,8 +25,8 @@ const TokenHoldings = () => {
           throw new Error('Failed to fetch token holdings');
         }
         const data = await response.json();
-        // Ensure data is an array before setting
-        setHoldings(Array.isArray(data) ? data : []);
+        // Ensure data.holdings exists and is an array before setting
+        setHoldings(data.success && Array.isArray(data.holdings) ? data.holdings : []);
         setIsLoading(false);
       } catch (err) {
         setError((err as Error).message);
@@ -32,7 +35,7 @@ const TokenHoldings = () => {
     };
 
     fetchHoldings();
-  }, [publicKey]); // Add publicKey as dependency
+  }, [publicKey]);
 
   if (isLoading) {
     return <div className="text-center">Loading...</div>;
@@ -52,10 +55,17 @@ const TokenHoldings = () => {
         <span>Token</span>
         <span>Amount</span>
       </div>
-      {Array.isArray(holdings) && holdings.map((token, idx) => (
+      {holdings.map((token, idx) => (
         <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
-          <span className="font-medium text-gray-900 dark:text-white">{token.mintAddress}</span>
-          <span className="text-gray-900 dark:text-white">{token.amount}</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {token.symbol || token.name || token.mintAddress}
+          </span>
+          <span className="text-gray-900 dark:text-white">
+            {token.amount.toLocaleString(undefined, {
+              minimumFractionDigits: token.decimals,
+              maximumFractionDigits: token.decimals
+            })}
+          </span>
         </div>
       ))}
     </div>

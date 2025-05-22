@@ -71,3 +71,4 @@ export async function getTokenHoldings(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to get token holdings', message: (error as Error).message });
   }
 }
+

@@ -1,3 +1,5 @@
+import { TokenInfo } from "@solana/spl-token-registry";
+
 // Type for Solana cluster options
 export type ClusterType = 'mainnet-beta' | 'testnet' | 'devnet';
 
@@ -13,7 +15,7 @@ export interface WalletBalance {
 }
 
 // Type for token info
-export interface TokenInfo {
+export interface TokenInfoData {
   mintAddress: string;
   decimals?: number;
   name?: string;
@@ -22,5 +24,5 @@ export interface TokenInfo {
 
 // Type for tokens map
 export interface TokensMap {
-  [tokenName: string]: TokenInfo;
+  [tokenName: string]: TokenInfoData;
 }
