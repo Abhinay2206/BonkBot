@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWallet } from "../../contexts/WalletContext"
+import { COIN_DATA } from "../../data/coinData";
 
 interface TokenHolding {
   mintAddress: string;
@@ -8,6 +9,10 @@ interface TokenHolding {
   symbol?: string;
   name?: string;
 }
+
+const getTokenInfo = (mintAddress: string) => {
+  return Object.values(COIN_DATA).find(coin => coin.mintAddress === mintAddress);
+};
 
 const TokenHoldings = () => {
   const { publicKey } = useWallet();
@@ -55,19 +60,31 @@ const TokenHoldings = () => {
         <span>Token</span>
         <span>Amount</span>
       </div>
-      {holdings.map((token, idx) => (
-        <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
-          <span className="font-medium text-gray-900 dark:text-white">
-            {token.symbol || token.name || token.mintAddress}
-          </span>
-          <span className="text-gray-900 dark:text-white">
-            {token.amount.toLocaleString(undefined, {
-              minimumFractionDigits: token.decimals,
-              maximumFractionDigits: token.decimals
-            })}
-          </span>
-        </div>
-      ))}
+      {holdings.map((token, idx) => {
+        const tokenInfo = getTokenInfo(token.mintAddress);
+        return (
+          <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="flex items-center gap-2">
+              {tokenInfo?.logoURI && (
+                <img 
+                  src={tokenInfo.logoURI} 
+                  alt={tokenInfo.symbol} 
+                  className="w-6 h-6 rounded-full"
+                />
+              )}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {tokenInfo?.symbol || token.symbol || tokenInfo?.name || token.name || token.mintAddress}
+              </span>
+            </div>
+            <span className="text-gray-900 dark:text-white">
+              {token.amount.toLocaleString(undefined, {
+                minimumFractionDigits: token.decimals,
+                maximumFractionDigits: token.decimals
+              })}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };
