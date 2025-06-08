@@ -54,7 +54,7 @@ const WalletPopup = () => {
       phantom: !!window.phantom?.solana?.isPhantom,
       metamask: !!window.ethereum,
       solflare: !!window.solflare?.isSolflare,
-      bitget: !!window.BitgetWallet?.isBitget, // Updated BitGet check
+      bitget: !!window.BitgetWallet?.isBitget, 
       coinbase: !!window.coinbase?.isCoinbaseWallet,
       trustwallet: !!window.trustwallet?.isTrust
     });
@@ -69,6 +69,7 @@ const WalletPopup = () => {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('metamaskConnected', 'true');
+              sessionStorage.setItem('walletType', 'metamask');
               setWalletInfo('metamask', accounts[0]);
               navigate('/dashboard');
             }
@@ -82,6 +83,7 @@ const WalletPopup = () => {
             const publicKey = response.publicKey.toString();
             if (publicKey) {
               sessionStorage.setItem('phantomConnected', 'true');
+              sessionStorage.setItem('walletType', 'phantom');
               setWalletInfo('phantom', publicKey);
               navigate('/dashboard');
             }
@@ -95,6 +97,7 @@ const WalletPopup = () => {
               const publicKey = response.publicKey.toString();
               if (publicKey) {
                 sessionStorage.setItem('solflareConnected', 'true');
+                sessionStorage.setItem('walletType', 'solflare');
                 setWalletInfo('solflare', publicKey);
                 navigate('/dashboard');
               }
@@ -111,6 +114,7 @@ const WalletPopup = () => {
             const publicKey = response.publicKey.toString();
             if (publicKey) {
               sessionStorage.setItem('bitgetConnected', 'true');
+              sessionStorage.setItem('walletType', 'bitget');
               setWalletInfo('bitget', publicKey);
               navigate('/dashboard');
             }
@@ -122,6 +126,7 @@ const WalletPopup = () => {
             const accounts = await window.coinbase.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('coinbaseConnected', 'true');
+              sessionStorage.setItem('walletType', 'coinbase');
               setWalletInfo('coinbase', accounts[0]);
               navigate('/dashboard');
             }
@@ -133,6 +138,7 @@ const WalletPopup = () => {
             const accounts = await window.trustwallet.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts[0]) {
               sessionStorage.setItem('trustwalletConnected', 'true');
+              sessionStorage.setItem('walletType', 'trustwallet');
               setWalletInfo('trustwallet', accounts[0]);
               navigate('/dashboard');
             }

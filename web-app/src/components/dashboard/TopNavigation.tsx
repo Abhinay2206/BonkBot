@@ -13,6 +13,7 @@ const TopNavigation = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [bonkBalance, setBonkBalance] = useState("0")
+  const [walletName, setWalletName] = useState("")
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedMode = localStorage.getItem('theme')
@@ -51,6 +52,29 @@ const TopNavigation = () => {
 
     fetchBonkBalance()
   }, [publicKey])
+
+  useEffect(() => {
+    if(publicKey) {
+      const walletType = sessionStorage.getItem('walletType') || 'unknown'
+      setWalletName(walletType.charAt(0).toUpperCase() + walletType.slice(1)) 
+    } else {
+      setWalletName('');
+    }
+  }, [publicKey])
+
+  const copyToClipboard = async (text: string) => {
+    if(publicKey){
+      try {
+        await navigator.clipboard.writeText(text)
+        alert("Copied to clipboard!")
+      } catch (error) {
+        console.error("Failed to copy text:", error)
+        alert("Failed to copy text.")
+      }
+    }
+  }
+
+
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -129,27 +153,61 @@ const TopNavigation = () => {
                 >
                   <Wallet size={20} className="text-purple-500 dark:text-purple-400" />
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium">{`${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`}</span>
+                    <span className="text-sm font-medium">{walletName}</span>
                     <span className="text-xs text-purple-600 dark:text-purple-400">{bonkBalance} BONK</span>
                   </div>
                   <ChevronDown size={16} />
                 </button>
 
                 {showWalletMenu && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-72 rounded-lg bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Wallet Address</div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{publicKey}</div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyToClipboard(publicKey)
+                          }}
+                          className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                     <button
-                      onClick={disconnect}
+                      onClick={() => {
+                        navigate('/settings')
+                        setShowWalletMenu(false)
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      <Settings size={16} />
+                      <span className="font-medium">Wallet Settings</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        disconnect()
+                        setShowWalletMenu(false)
+                      }}
                       className="flex items-center gap-2 w-full px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       <LogOut size={16} />
                       <span className="font-medium">Disconnect</span>
                     </button>
                     <button
-                      onClick={disconnect}
-                      className="flex items-center gap-2 w-full px-4 py-3 text-black-600 dark:text-black-400 hover:bg-gray-200 dark:hover:bg-black-900/20 transition-colors"
+                      onClick={() => {
+                        navigate('/wallet')
+                        setShowWalletMenu(false)
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <StepBack size={16} />
-                      <span className="font-medium">change wallet</span>
+                      <span className="font-medium">Change Wallet</span>
                     </button>
                   </div>
                 )}
