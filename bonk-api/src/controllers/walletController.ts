@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getWalletBalances, getAllTokenHoldings } from '../services/solanaService';
+import { getWalletBalances, getAllTokenHoldings, getRecentTransactions } from '../services/solanaService';
 import { isValidSolanaAddress } from '../utils';
 
 
@@ -69,6 +69,33 @@ export async function getTokenHoldings(req: Request, res: Response) {
     res.json({ success: true, holdings });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get token holdings', message: (error as Error).message });
+  }
+}
+
+export async function getTransactionHistory(req: Request, res: Response): Promise<void> {
+  try {
+    const walletAddress = req.params.wallet;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    
+    if (!isValidSolanaAddress(walletAddress)) {
+      res.status(400).json({ error: 'Invalid wallet address format' });
+      return;
+    }
+
+    if (isNaN(limit) || limit < 1 || limit > 50) {
+      res.status(400).json({ error: 'Invalid limit parameter. Must be between 1 and 50.' });
+      return;
+    }
+
+    const transactions = await getRecentTransactions(walletAddress, limit);
+    
+    res.json({
+      address: walletAddress,
+      transactions
+    });
+  } catch (error) {
+    console.error('Error fetching transaction history:', error);
+    res.status(500).json({ error: `Failed to fetch transaction history: ${(error as Error).message}` });
   }
 }
 

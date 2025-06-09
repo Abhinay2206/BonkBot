@@ -14,6 +14,18 @@ export interface WalletBalance {
   };
 }
 
+// Type for transaction info
+export interface TransactionInfo {
+  signature: string;
+  type: 'Unknown' | 'Transfer' | 'Swap' | 'Stake';
+  time: string;
+  token?: string;
+  amount?: number;
+  value?: number;
+  fromAddress?: string;
+  toAddress?: string;
+}
+
 // Type for token info
 export interface TokenInfoData {
   mintAddress: string;
